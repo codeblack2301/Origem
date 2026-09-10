@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: origem-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: origem
+      POSTGRES_PASSWORD: origem
+      POSTGRES_DB: origem
+    ports:
+      - "5432:5432"
+    volumes:
+      - origem_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U origem -d origem"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Futuro: worker de processamento em segundo plano (recomendação, indicadores).
+  # É habilitado quando apps/worker tiver código. Código: apps/worker.
+  # worker:
+  #   build:
+  #     context: ./apps/worker
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+
+volumes:
+  origem_pgdata:
