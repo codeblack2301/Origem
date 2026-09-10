@@ -1,0 +1,32 @@
+{
+  "name": "origem",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marketplace da economia criativa de Pernambuco",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,api -c blue,green \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev -w @origem/web",
+    "dev:api": "npm run dev -w @origem/api",
+    "build": "npm run build -w @origem/web && npm run build -w @origem/api",
+    "lint": "npm run lint -w @origem/web && npm run lint -w @origem/api",
+    "typecheck": "npm run typecheck -w @origem/web && npm run typecheck -w @origem/api",
+    "test": "npm run test -w @origem/web && npm run test -w @origem/api",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f db",
+    "db:push": "npm run db:push -w @origem/api",
+    "db:seed": "npm run db:seed -w @origem/api",
+    "db:migrate": "npm run db:migrate -w @origem/api",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

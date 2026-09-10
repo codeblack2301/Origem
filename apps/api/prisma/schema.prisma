@@ -1,0 +1,296 @@
+// Schema Prisma do Origem — espelha docs/04-banco/modelo-dados.md.
+// Regras de negócio (RN) documentadas em docs/02-requisitos/regras-negocio.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==== Enums ====
+
+enum Role {
+  BUYER
+  ARTISAN
+  ADMIN
+}
+
+enum ArtisanStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  CONFIRMED
+  IN_PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+enum PaymentMode {
+  SIMULATED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  REMOVED
+}
+
+enum StockMoveReason {
+  PURCHASE
+  REPLENISH
+  ADJUST
+}
+
+// ==== Modelos ====
+
+model User {
+  id               String        @id @default(cuid())
+  name             String
+  email            String        @unique
+  passwordHash     String
+  role             Role          @default(BUYER)
+  consentLoggedAt  DateTime?
+  createdAt        DateTime      @default(now())
+
+  artisan   Artisan?
+  reviews   Review[]
+  cartItems CartItem[]
+  addresses Address[]
+  orders    Order[]
+
+  @@index([role])
+}
+
+model Artisan {
+  id        String        @id @default(cuid())
+  userId    String        @unique
+  bio       String?
+  story     String?
+  city      String
+  uf        String        @default("PE")
+  origin    String?
+  avatarUrl String?
+  status    ArtisanStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product[]
+
+  @@index([status])
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  name     String     @unique
+  slug     String     @unique
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+
+  product Product[]
+}
+
+model Product {
+  id                 String        @id @default(cuid())
+  artisanId          String
+  categoryId         String
+  title              String
+  slug               String
+  description        String
+  technique          String
+  materials          String
+  origin             String
+  priceCents         Int
+  salePriceCents     Int?
+  stock              Int           @default(0)
+  status             ProductStatus @default(DRAFT)
+  productionTimeDays Int?
+  metadata           Json?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  artisan         Artisan          @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images          ProductImage[]
+  reviews         Review[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  stockMovements  StockMovement[]
+  recommendation RecommendationCache? @relation("ProductRecommendation")
+
+  @@unique([artisanId, title])
+  @@index([categoryId, status])
+  @@index([status, priceCents])
+  @@index([artisanId, status])
+  @@index([slug])
+}
+
+model ProductImage {
+  id        String @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int    @default(0)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+model CartItem {
+  id        String @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Address {
+  id          String  @id @default(cuid())
+  userId      String
+  label       String
+  street      String
+  number      String
+  complement  String?
+  neighborhood String
+  city        String
+  uf          String  @default("PE")
+  zip         String
+  isDefault   Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  buyerId     String
+  addressId   String
+  status      OrderStatus @default(PENDING_PAYMENT)
+  totalCents  Int
+  statusHistory Json       @default("[]")
+  version     Int         @default(0)
+  createdAt   DateTime    @default(now())
+  paidAt      DateTime?
+
+  buyer   User        @relation(fields: [buyerId], references: [id], onDelete: Restrict)
+  address Address     @relation(fields: [addressId], references: [id], onDelete: Restrict)
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([buyerId, createdAt(sort: Desc)])
+}
+
+model OrderItem {
+  id            String     @id @default(cuid())
+  orderId       String
+  productId     String
+  artisanId     String
+  unitPriceCents Int
+  quantity      Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, productId])
+  @@index([artisanId, orderId(sort: Desc)])
+  @@index([productId])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String        @unique
+  mode      PaymentMode   @default(SIMULATED)
+  reference String        @unique
+  status    PaymentStatus @default(PENDING)
+  payload   Json?
+  createdAt DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id            String       @id @default(cuid())
+  productId     String
+  userId        String
+  orderId       String
+  rating        Int
+  comment       String?
+  status        ReviewStatus @default(PENDING)
+  moderatedById String?
+  createdAt     DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, orderId])
+  @@index([productId, status])
+  @@index([status])
+}
+
+model StockMovement {
+  id          String         @id @default(cuid())
+  productId   String
+  delta       Int
+  reason      StockMoveReason
+  note        String?
+  orderItemId String?
+  createdAt   DateTime       @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt(sort: Desc)])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([adminId, createdAt(sort: Desc)])
+}
+
+model RecommendationCache {
+  id            String  @id @default(cuid())
+  productId     String  @unique
+  recommendedIds Json
+  score         Float?
+  generatedAt   DateTime @default(now())
+
+  product   Product  @relation("ProductRecommendation", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
