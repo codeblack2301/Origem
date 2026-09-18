@@ -34,6 +34,15 @@ npm run build       # build de produção (Next e tsc)
 - Segredos apenas em `.env` (nunca commit), espelho em `.env.example`
   (`apps/api/.env.example`).
 
+## Estilo de código
+- Nomes descritivos em pt-BR; **evitar** variáveis de uma letra (`p`, `l`, `k`).
+- Código enxuto como de programador: fazer apenas o básico da utilização, sem
+  extrapolar o nível nem criar abstrações desnecessárias.
+- Não repetir interfaces/tipos já definidos; importar os existentes.
+- Não criar componentes duplicados — reutilizar os que já foram criados.
+- Ao final de cada tarefa, entregar um **resumo em pt-BR** do que foi feito:
+  o que é cada trecho alterado/criado e para que serve.
+
 ## Fluxo
 Nova funcionalidade → atualizar `docs/02-requisitos` (história/RN) se necessário
 → branch `feature/<area>-<desc>` → implementar → lint+typecheck+testes → PR.
