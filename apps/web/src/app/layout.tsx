@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// Fonte principal para corpo do texto e formulários
-const interSans = Inter({
+// Fontes auto-hospedadas (woff2 em src/app/fonts). Evita o fetch do Google em
+// tempo de build do Turbopack, que quebra em redes restritas (CI/container)
+// com "Can't resolve '@vercel/turbopack-next/internal/font/google/font'".
+const interSans = localFont({
+  src: "./fonts/inter-latin.woff2",
   variable: "--font-inter-sans",
-  subsets: ["latin"],
 });
 
 // Fonte serifada refinada para títulos artesanais e destaques da marca Manuali
-const playfairSerif = Playfair_Display({
+const playfairSerif = localFont({
+  src: "./fonts/playfair-display-latin.woff2",
   variable: "--font-playfair-serif",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
 });
-
 export const metadata: Metadata = {
   title: "Manuali — Economia Criativa e Artesanato Pernambucano",
   description:
