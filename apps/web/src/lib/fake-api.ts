@@ -283,11 +283,26 @@ export const fakeApiService = {
     await aguardarSimulacaoRede();
 
     const eModoArtesao = requisicao.papelDesejado === "ARTESAO";
+    const eModoAdmin = requisicao.papelDesejado === "ADMIN";
 
     const perfilAutenticado: PerfilUsuarioAutenticado = {
-      identificadorUsuario: eModoArtesao ? "artesao-1" : "usr-comprador-99",
-      nomeCompleto: eModoArtesao ? "Ateliê Mestre Vitalino Filho" : "Mariana Costa",
-      enderecoEmail: requisicao.enderecoEmail || (eModoArtesao ? "artesao@manuali.com.br" : "mariana@exemplo.com"),
+      identificadorUsuario: eModoAdmin
+        ? "admin-1"
+        : eModoArtesao
+          ? "artesao-1"
+          : "usr-comprador-99",
+      nomeCompleto: eModoAdmin
+        ? "Admin"
+        : eModoArtesao
+          ? "Ateliê Mestre Vitalino Filho"
+          : "Mariana Costa",
+      enderecoEmail:
+        requisicao.enderecoEmail ||
+        (eModoAdmin
+          ? "admin@manuali.com.br"
+          : eModoArtesao
+            ? "artesao@manuali.com.br"
+            : "mariana@exemplo.com"),
       papelUsuario: requisicao.papelDesejado,
       identificadorArtesao: eModoArtesao ? "artesao-1" : undefined,
       nomeAtelie: eModoArtesao ? "Ateliê Vitalino (Alto do Moura)" : undefined,
@@ -407,7 +422,10 @@ export const fakeApiService = {
         requisicao.urlImagem ||
         "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=800&q=80",
       descricaoCompleta: requisicao.descricaoCompleta,
-      estatutoAtivo: true,
+      historiaPeca: requisicao.historiaPeca,
+      urlImagensGaleria: requisicao.urlImagensGaleria,
+      statusPublicacao: requisicao.statusPublicacao ?? "ativo",
+      estatutoAtivo: (requisicao.statusPublicacao ?? "ativo") === "ativo",
       notaAvaliacaoMedia: 5.0,
       totalAvaliacoes: 1,
     };
@@ -435,6 +453,68 @@ export const fakeApiService = {
     }
 
     listaAtual[indice].estoqueDisponivel = novoEstoque;
+    salvarProdutosGravados(listaAtual);
+    return listaAtual[indice];
+  },
+
+  async obterProdutoPorId(
+    identificadorProduto: string
+  ): Promise<ItemCatalogoProduto | null> {
+    await aguardarSimulacaoRede(150);
+    return (
+      obterProdutosGravados().find(
+        (produtoItem) =>
+          produtoItem.identificadorProduto === identificadorProduto
+      ) ?? null
+    );
+  },
+
+  // Inclui rascunhos e pausados, que a vitrine pública não exibe
+  async listarProdutosDoArtesao(
+    identificadorArtesao: string
+  ): Promise<ItemCatalogoProduto[]> {
+    await aguardarSimulacaoRede();
+    return obterProdutosGravados().filter(
+      (produtoItem) => produtoItem.identificadorArtesao === identificadorArtesao
+    );
+  },
+
+  async atualizarProduto(
+    identificadorProduto: string,
+    requisicao: RequisicaoNovoProduto
+  ): Promise<ItemCatalogoProduto> {
+    await aguardarSimulacaoRede();
+    const listaAtual = obterProdutosGravados();
+    const indice = listaAtual.findIndex(
+      (produtoItem) =>
+        produtoItem.identificadorProduto === identificadorProduto
+    );
+
+    if (indice === -1) {
+      throw new Error("Produto não encontrado.");
+    }
+
+    const statusPublicacao = requisicao.statusPublicacao ?? "ativo";
+    listaAtual[indice] = {
+      ...listaAtual[indice],
+      tituloProduto: requisicao.tituloProduto,
+      identificadorCategoria: requisicao.identificadorCategoria,
+      nomeCategoria:
+        CATEGORIAS_INICIAIS_MANUALI.find(
+          (categoriaItem) =>
+            categoriaItem.identificadorCategoria ===
+            requisicao.identificadorCategoria
+        )?.nomeCategoria ?? listaAtual[indice].nomeCategoria,
+      precoEmCentavos: requisicao.precoEmCentavos,
+      estoqueDisponivel: requisicao.estoqueDisponivel,
+      urlImagem: requisicao.urlImagem || listaAtual[indice].urlImagem,
+      descricaoCompleta: requisicao.descricaoCompleta,
+      historiaPeca: requisicao.historiaPeca,
+      urlImagensGaleria: requisicao.urlImagensGaleria,
+      statusPublicacao,
+      estatutoAtivo: statusPublicacao === "ativo",
+    };
+
     salvarProdutosGravados(listaAtual);
     return listaAtual[indice];
   },

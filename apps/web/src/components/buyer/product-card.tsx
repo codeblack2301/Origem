@@ -2,6 +2,7 @@
 
 import { Award, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +29,8 @@ export function ProductCard({
     }
   );
 
+  const rotaDetalheProduto = `/comprador/produto/${produto.identificadorProduto}`;
+
   const processarCliqueComprar = () => {
     setAdicionando(true);
     aoAdicionarAoCarrinho(produto);
@@ -37,8 +40,12 @@ export function ProductCard({
 
   return (
     <article className="group flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-stone-200/80 shadow-md shadow-stone-200/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-stone-300/40">
-      {/* Imagem do Produto Artesanal */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-stone-100">
+      {/* Imagem do Produto Artesanal (link para detalhes) */}
+      <Link
+        href={rotaDetalheProduto}
+        className="relative block aspect-4/3 w-full overflow-hidden bg-stone-100"
+        aria-label={`Ver detalhes de ${produto.tituloProduto}`}
+      >
         <Image
           src={produto.urlImagem}
           alt={produto.tituloProduto}
@@ -51,14 +58,16 @@ export function ProductCard({
             {produto.nomeCategoria}
           </span>
         </div>
-      </div>
+      </Link>
 
       {/* Detalhes da Obra */}
       <div className="flex flex-1 flex-col justify-between p-5 space-y-3">
         <div>
-          <h3 className="font-serif text-lg font-bold tracking-tight text-[#2C221E] group-hover:text-[#C85A32] transition-colors line-clamp-1">
-            {produto.tituloProduto}
-          </h3>
+          <Link href={rotaDetalheProduto} className="block">
+            <h3 className="font-serif text-lg font-bold tracking-tight text-[#2C221E] group-hover:text-[#C85A32] transition-colors line-clamp-1">
+              {produto.tituloProduto}
+            </h3>
+          </Link>
 
           {/* Nome do Artesão / Ateliê (Conforme Figma) */}
           <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#6E6259]">

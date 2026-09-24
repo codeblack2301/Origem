@@ -75,7 +75,7 @@ const PRODUTOS = [
     nome: "Bolsa de Ouricuri Tecida",
     artesao: "Artesãs de Petrolina",
     preco: "R$ 130,00",
-    imagem: "https://images.unsplash.com/photo-1590845947376-29177a49aee0?auto=format&fit=crop&w=600&q=80",
+    imagem: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=600&q=80",
   },
   {
     id: 6,
@@ -190,9 +190,10 @@ export default function HomeMarketplace() {
         {/* Banner Hero */}
         <section className="relative mt-4 h-[250px] overflow-hidden rounded-2xl bg-black">
           <Image
-            src="https://images.unsplash.com/photo-1541315570075-8eb3442eaec4?auto=format&fit=crop&w=1200&q=80"
+            src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1200&q=80"
             alt="Sertão ao pôr do sol"
             fill
+            sizes="100vw"
             priority
             className="object-cover opacity-60 mix-blend-overlay"
           />
@@ -270,6 +271,7 @@ export default function HomeMarketplace() {
                     src={produto.imagem}
                     alt={produto.nome}
                     fill
+                    sizes="(max-width: 640px) 50vw, 25vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {/* Selo de peça autêntica (sol entalhado) */}
