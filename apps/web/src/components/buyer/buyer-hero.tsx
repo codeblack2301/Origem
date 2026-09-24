@@ -12,6 +12,7 @@ export function BuyerHero() {
           src="https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=1600&q=80"
           alt="Esculturas em madeira e ateliê pernambucano"
           fill
+          sizes="100vw"
           priority
           className="object-cover"
         />

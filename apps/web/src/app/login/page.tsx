@@ -12,7 +12,9 @@ import { PapelUsuario } from "@/lib/types";
 
 export default function PaginaLogin() {
   const router = useRouter();
-  const [tipoUsuario, setTipoUsuario] = useState<"artesao" | "consumidor">("artesao");
+  const [tipoUsuario, setTipoUsuario] = useState<"artesao" | "consumidor" | "admin">(
+    "artesao"
+  );
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enderecoEmail, setEnderecoEmail] = useState("");
   const [senhaAcesso, setSenhaAcesso] = useState("");
@@ -22,17 +24,30 @@ export default function PaginaLogin() {
     eventoFormulario.preventDefault();
     setCarregando(true);
 
-    const papelDesejado: PapelUsuario = tipoUsuario === "artesao" ? "ARTESAO" : "CONSUMIDOR";
+    const papelDesejado: PapelUsuario =
+      tipoUsuario === "artesao" ? "ARTESAO" : tipoUsuario === "admin" ? "ADMIN" : "CONSUMIDOR";
 
     try {
       const perfilAutenticado = await fakeApiService.autenticarUsuario({
-        enderecoEmail: enderecoEmail || (tipoUsuario === "artesao" ? "artesao@manuali.com.br" : "comprador@manuali.com.br"),
+        enderecoEmail:
+          enderecoEmail ||
+          (tipoUsuario === "artesao"
+            ? "artesao@manuali.com.br"
+            : tipoUsuario === "admin"
+              ? "admin@manuali.com.br"
+              : "comprador@manuali.com.br"),
         senhaAcesso: senhaAcesso || "senha123",
         papelDesejado,
       });
 
       toast.success(`Bem-vindo(a) de volta, ${perfilAutenticado.nomeCompleto}!`);
-      router.push(perfilAutenticado.papelUsuario === "ARTESAO" ? "/artesao" : "/comprador");
+      router.push(
+        perfilAutenticado.papelUsuario === "ADMIN"
+          ? "/admin"
+          : perfilAutenticado.papelUsuario === "ARTESAO"
+            ? "/artesao"
+            : "/comprador"
+      );
     } catch {
       toast.error("Erro ao efetuar login. Verifique suas credenciais.");
     } finally {
@@ -50,6 +65,7 @@ export default function PaginaLogin() {
           src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1200&q=80"
           alt="Artesã no torno de cerâmica"
           fill
+          sizes="50vw"
           priority
           className="object-cover"
         />
@@ -133,6 +149,16 @@ export default function PaginaLogin() {
               }`}
             >
               Consumidor
+            </button>
+            <button
+              onClick={() => setTipoUsuario("admin")}
+              className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+                tipoUsuario === "admin"
+                  ? "bg-terracota text-branco shadow"
+                  : "text-texto-secundario hover:text-marrom-escuro"
+              }`}
+            >
+              Adm
             </button>
           </div>
 

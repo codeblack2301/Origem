@@ -26,6 +26,12 @@ export type StatusEntrega =
 
 export type PapelUsuario = "ARTESAO" | "CONSUMIDOR" | "ADMIN";
 
+// Estado de publicação do produto na vitrine do artesão (painel)
+export type StatusPublicacaoProduto = "ativo" | "rascunho" | "pausado";
+
+// Estado da conta de um usuário no painel administrativo
+export type StatusContaUsuario = "aprovado" | "ativo" | "pendente" | "bloqueado";
+
 // Perfil de Usuário Autenticado na Sessão
 export interface PerfilUsuarioAutenticado {
   identificadorUsuario: string;
@@ -56,6 +62,9 @@ export interface ItemCatalogoProduto {
   estatutoAtivo: boolean;
   notaAvaliacaoMedia: number;
   totalAvaliacoes: number;
+  statusPublicacao?: StatusPublicacaoProduto;
+  historiaPeca?: string;
+  urlImagensGaleria?: string[];
 }
 
 // Categoria de Artesanato
@@ -135,4 +144,17 @@ export interface RequisicaoNovoProduto {
   estoqueDisponivel: number;
   urlImagem: string;
   descricaoCompleta: string;
+  historiaPeca?: string;
+  urlImagensGaleria?: string[];
+  statusPublicacao?: StatusPublicacaoProduto;
+}
+
+// Usuário consultável no painel administrativo
+export interface UsuarioPainelAdmin {
+  identificadorUsuario: string;
+  nomeCompleto: string;
+  enderecoEmail: string;
+  papelUsuario: PapelUsuario;
+  statusConta: StatusContaUsuario;
+  motivoBloqueio?: string;
 }

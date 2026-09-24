@@ -18,6 +18,7 @@ export default function PaginaCadastro() {
           src="https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=1200&q=80"
           alt="Artesão entalhando madeira"
           fill
+          sizes="50vw"
           priority
           className="object-cover"
         />
